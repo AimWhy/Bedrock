@@ -1,6 +1,6 @@
 {
   "name": "@bedrock-layout/type-utils",
-  "version": "0.0.14",
+  "version": "0.1.13",
   "description": "bedrock-layout type utils",
   "sideEffects": false,
   "private": false,
@@ -23,6 +23,7 @@
   "types": "lib/index.d.ts",
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "import": "./lib/index.m.js",
       "require": "./lib/index.umd.js"
     }
@@ -44,14 +45,15 @@
     "clean:build": "rimraf lib",
     "build": "vite build && tsc --emitDeclarationOnly",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|jsx|ts|tsx|json)\"",
-    "fix-format": "yarn prettier -- --write",
-    "check-format": "yarn prettier -- --list-different",
+    "fix-format": "yarn prettier --write",
+    "check-format": "yarn prettier --list-different",
     "check-types": "tsc --noEmit"
   },
   "bugs": {
     "url": "https://github.com/Bedrock-Layouts/Bedrock/issues"
   },
   "peerDependencies": {
-    "react": "^16.8 || ^17"
-  }
+    "react": "^16.8 || ^17 || ^18"
+  },
+  "gitHead": "a3f85a5aebbd9681317b1c00c88765b2537f9b10"
 }

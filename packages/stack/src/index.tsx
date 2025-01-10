@@ -1,36 +1,61 @@
 import {
-  SpacingOptions,
-  getSpacingValue,
+  Gutter,
+  getSafeGutter,
+  useTheme,
 } from "@bedrock-layout/spacing-constants";
-import PropTypes from "prop-types";
-import styled from "styled-components";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React from "react";
 
+/**
+ * Props for Stack component.
+ */
 export interface StackProps {
-  gutter: keyof SpacingOptions;
+  /**
+   * Sets space between each element.
+   * @deprecated Use `gap` instead.
+   */
+  gutter?: Gutter;
+  /**
+   * Sets space between each element.
+   */
+  gap?: Gutter;
+
+  /**
+   * The `align` prop can be used to specify the inline alignment of the children.
+   */
+  align?: "start" | "center" | "end" | "stretch";
 }
 
-export const Stack = styled.div.attrs<StackProps>(({ gutter, theme }) => {
-  return {
-    "data-bedrock-stack": "",
-  };
-})<StackProps>`
-  box-sizing: border-box;
-  > * {
-    margin: 0;
-  }
-  --gutter: ${(props) => getSpacingValue(props.theme, props.gutter) ?? "0px"};
+function createAttributeString(
+  prefix: string,
+  value: string | number | undefined,
+) {
+  if (value === undefined) return undefined;
 
-  display: grid;
-  gap: var(--gutter);
-  align-content: start;
+  return `${prefix}:${value}`;
+}
 
-  & > [data-bedrock-column] {
-    grid-column: span 1 / auto;
-  }
-`;
+/**
+ * The `Stack` is designed to literally stack items on top of each other while maintaining a consistent gutter between each item.
+ */
+export const Stack = forwardRefWithAs<"div", StackProps>(function Stack(
+  { as: Component = "div", gutter, gap, align, style = {}, ...props },
+  ref,
+) {
+  const theme = useTheme();
 
-Stack.displayName = "Stack";
+  const alignValue = createAttributeString("align", align);
 
-Stack.propTypes = {
-  gutter: PropTypes.string.isRequired as React.Validator<keyof SpacingOptions>,
-};
+  const maybeGutter = getSafeGutter(theme, gap ?? gutter);
+
+  const attributes = [alignValue].filter(Boolean).join(" ");
+
+  return (
+    <Component
+      ref={ref}
+      data-bedrock-stack={attributes}
+      style={{ "--gutter": maybeGutter, ...style } as React.CSSProperties}
+      {...props}
+    />
+  );
+});

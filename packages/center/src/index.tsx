@@ -1,82 +1,71 @@
 import {
   CSSLength,
   SizesOptions,
-  checkIsCSSLength,
   getSizeValue,
-  sizes,
+  useTheme,
 } from "@bedrock-layout/spacing-constants";
-import PropTypes from "prop-types";
-import styled from "styled-components";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React, { CSSProperties } from "react";
 
-type MaxWidth = number | CSSLength | SizesOptions;
+/**
+ * The `maxWidth` prop can be a CSSLength, a number, or a key of the theme's sizes options.
+ */
+export type MaxWidth = number | CSSLength | SizesOptions;
 
-export interface CenterProps {
+/**
+ * Props for the Center component.
+ */
+export type CenterProps = {
+  /**
+   * Sets the max-inline size of the component.
+   * The `maxWidth` prop can be a CSSLength, a number, or a key of the theme's sizes options.
+   */
   maxWidth?: MaxWidth;
+  /**
+   * Sets the text alignment of the component to center.
+   */
   centerText?: boolean;
+  /**
+   * Sets the alignment of the component's children to be centered.
+   * @deprecated Use with the stack component set to align="center" instead.
+   */
   centerChildren?: boolean;
-}
-
-export const Center = styled.div.attrs<CenterProps>(
-  ({ centerChildren, centerText, maxWidth, theme, style }) => {
-    const centerProps = [
-      centerText && "center-text",
-      centerChildren && "center-children",
-    ]
-      .filter((x) => x)
-      .join(" ");
-
-    return {
-      "data-bedrock-center": centerProps,
-      style: {
-        ...style,
-        "--maxWidth": getSizeValue(theme, maxWidth) ?? maxWidth,
-      },
-    };
-  }
-)<CenterProps>`
-  @property --maxWidth {
-    syntax: "<length-percentage>";
-    inherits: false;
-    initial-value: 100%;
-  }
-
-  box-sizing: content-box;
-
-  margin-inline-start: auto;
-  margin-inline-end: auto;
-  margin-inline: auto;
-
-  max-inline-size: var(--maxWidth, 100%);
-
-  ${(props) =>
-    props.centerChildren &&
-    `display: flex;
-    flex-direction: column;
-    align-items: center;`}
-
-  ${(props) => props.centerText && `text-align: center;`}
-`;
-
-Center.displayName = "Center";
-
-function validateMaxWidth({ maxWidth }: CenterProps, propName: string) {
-  if (maxWidth === undefined) return undefined;
-
-  const isValid =
-    typeof maxWidth === "number" ||
-    checkIsCSSLength(maxWidth as string) ||
-    Object.keys(sizes).includes(maxWidth as string);
-
-  if (!isValid) {
-    console.error(
-      `${propName} needs to be an number, CSSLength or SizesOptions`
-    );
-  }
-  return undefined;
-}
-
-Center.propTypes = {
-  maxWidth: validateMaxWidth as unknown as React.Validator<MaxWidth>,
-  centerText: PropTypes.bool,
-  centerChildren: PropTypes.bool,
 };
+
+/**
+ * The `Center` component is designed to center and clamp its width at a predefined value.
+ * You can also center the children and text alignment as well.
+ */
+export const Center = forwardRefWithAs<"div", CenterProps>(function Center(
+  {
+    as: Component = "div",
+    centerChildren,
+    centerText,
+    maxWidth,
+    style = {},
+    ...props
+  },
+  ref,
+) {
+  const theme = useTheme();
+  const centerProps = [
+    centerText && "center-text",
+    centerChildren && "center-children",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <Component
+      data-bedrock-center={centerProps}
+      ref={ref}
+      style={
+        {
+          "--maxWidth": getSizeValue(theme, maxWidth) ?? maxWidth,
+          ...style,
+        } as CSSProperties
+      }
+      {...props}
+    />
+  );
+});

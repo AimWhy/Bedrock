@@ -1,126 +1,114 @@
 import {
   BaseTheme,
-  SpacingOptions,
-  spacing as defaultSpacing,
-  getSpacingValue,
+  Gutter,
+  getSafeGutter,
+  useTheme,
 } from "@bedrock-layout/spacing-constants";
-import PropTypes from "prop-types";
-import styled from "styled-components";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React, { CSSProperties } from "react";
 
-type SpacingTypes = keyof SpacingOptions;
+/**
+ * The `padding` prop can also take an object to specify which
+ * locations will have padding and of which type. You can pass either
+ * traditional properties like `top, bottom, right, left`, or logical
+ * properties in camelCase such as `blockStart, blockEnd, inlineStart,
+ * inlineEnd`. No matter which properties are given, logical properties
+ * are used.
+ */
+export type PaddingObj =
+  | { left: Gutter }
+  | { right: Gutter }
+  | { top: Gutter }
+  | { bottom: Gutter }
+  | { inlineStart: Gutter }
+  | { inlineEnd: Gutter }
+  | { blockStart: Gutter }
+  | { blockEnd: Gutter };
 
-type PaddingObj =
-  | { left: SpacingTypes }
-  | { right: SpacingTypes }
-  | { top: SpacingTypes }
-  | { bottom: SpacingTypes }
-  | { inlineStart: SpacingTypes }
-  | { inlineEnd: SpacingTypes }
-  | { blockStart: SpacingTypes }
-  | { blockEnd: SpacingTypes };
+/**
+ * `padding` can take an array that follows the
+ * [padding short hand rules](https://developer.mozilla.org/en-US/docs/Web/CSS/padding).
+ */
+export type PaddingArray =
+  | [Gutter]
+  | [Gutter, Gutter]
+  | [Gutter, Gutter, Gutter]
+  | [Gutter, Gutter, Gutter, Gutter];
 
-type PaddingTypes =
-  | SpacingTypes
-  | PaddingObj
-  | [SpacingTypes]
-  | [SpacingTypes, SpacingTypes]
-  | [SpacingTypes, SpacingTypes, SpacingTypes]
-  | [SpacingTypes, SpacingTypes, SpacingTypes, SpacingTypes];
+/**
+ * Padding values can either be any valid Gutter value, a positive `number`
+ * indicating the number of pixels, or a valid `CSSLength`. If you provided
+ * an invalid value (such as a negative number), the padding will be set to `0px`.
+ */
+export type PaddingTypes = Gutter | PaddingObj | PaddingArray;
 
-type Theme = {
-  spacing?: BaseTheme;
-};
-
-const validKeys = new Set([
-  "left",
-  "right",
-  "top",
-  "bottom",
-  "inlineStart",
-  "inlineEnd",
-  "blockStart",
-  "blockEnd",
-]);
-
-const keyToProperty = (key: string, val: string) => {
+function keyToProperty(key: string) {
   type map = { [s: string]: string };
   const modernMap: map = {
-    left: `padding-inline-start:${val};`,
-    right: `padding-inline-end:${val};`,
-    top: `padding-block-start:${val};`,
-    bottom: `padding-block-end:${val};`,
-    inlineStart: `padding-inline-start:${val};`,
-    inlineEnd: `padding-inline-end:${val};`,
-    blockStart: `padding-block-start:${val};`,
-    blockEnd: `padding-block-end:${val};`,
+    left: `padding-inline-start`,
+    right: `padding-inline-end`,
+    top: `padding-block-start`,
+    bottom: `padding-block-end`,
+    inlineStart: `padding-inline-start`,
+    inlineEnd: `padding-inline-end`,
+    blockStart: `padding-block-start`,
+    blockEnd: `padding-block-end`,
   };
 
   return modernMap[key];
-};
-
-function paddingOrDefault(theme: Theme) {
-  return (key: SpacingTypes) => {
-    const maybePadding = getSpacingValue(theme, key);
-    return maybePadding ?? "0px";
-  };
 }
 
-const paddingToString = (theme: Theme) => (padding: PaddingTypes) => {
-  if (Array.isArray(padding) && padding.length > 4) {
-    throw new Error("padding arrays can only be 4 or less in length");
-  }
-
-  const validSpacings = new Set(Object.keys(theme.spacing ?? defaultSpacing));
-
-  const isValidPadding = () => {
-    if (typeof padding === "string") return true;
-
-    if (Array.isArray(padding)) {
-      return padding.every((val) => validSpacings.has(val));
-    }
-
-    return (
-      padding &&
-      Object.keys(padding).every((key) => validKeys.has(key)) &&
-      Object.values(padding).every((val) => validSpacings.has(val))
-    );
-  };
-
-  if (!isValidPadding()) {
-    console.error("Invalid padding Type");
-  }
-
-  const getPadding = paddingOrDefault(theme);
-
+const paddingToStyleProps = (
+  theme: Readonly<{ space?: BaseTheme }>,
+  padding: Readonly<PaddingTypes>,
+) => {
   return typeof padding === "object" && !Array.isArray(padding)
     ? Object.entries(padding).reduce(
-        (acc, [key, val]) =>
-          validKeys.has(key) ? acc + keyToProperty(key, getPadding(val)) : acc,
-        ""
+        (acc, [key, val]) => ({
+          ...acc,
+          [keyToProperty(key)]: getSafeGutter(theme, val) ?? "0px",
+        }),
+        {},
       )
-    : `padding: ${Array.from(Array.isArray(padding) ? padding : [padding])
-        .map((pad: SpacingTypes) => getPadding(pad))
-        .join(" ")}`;
+    : {
+        padding: Array.from(Array.isArray(padding) ? padding : [padding])
+          .slice(0, 4)
+          .map((pad: Gutter) => getSafeGutter(theme, pad) ?? "0px")
+          .join(" "),
+      };
 };
 
-export interface PadBoxProps {
-  padding: PaddingTypes;
-}
-
-export const PadBox = styled.div.attrs<PadBoxProps>(() => ({
-  "data-bedrock-padbox": "",
-}))<PadBoxProps>`
-  box-sizing: border-box;
-  ${(props) => paddingToString(props.theme)(props.padding)}
-`;
-
-PadBox.displayName = "PadBox";
-
-PadBox.propTypes = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  padding: PropTypes.oneOfType<any>([
-    PropTypes.string,
-    PropTypes.objectOf(PropTypes.string),
-    PropTypes.arrayOf(PropTypes.string),
-  ]).isRequired,
+/**
+ * Props for PadBox Component.
+ */
+export type PadBoxProps = {
+  /**
+   * Sets the padding around the content of the element.
+   */
+  padding?: PaddingTypes;
 };
+
+/**
+ * The `PadBox` component is designed to create consistent padding based on
+ * the spacing constants. The `PadBox` component takes either a single value, an array of
+ * values (like the css shorthand for top / right / bottom / left), or an
+ * object of values (specifying each side individually) for fine tuning the
+ * padding.
+ */
+export const PadBox = forwardRefWithAs<"div", PadBoxProps>(function PadBox(
+  { as: Component = "div", style = {}, padding = "size00", ...props },
+  ref,
+) {
+  const theme = useTheme();
+
+  const paddingStyles = paddingToStyleProps(theme, padding);
+
+  return (
+    <Component
+      data-bedrock-padbox
+      {...props}
+      ref={ref}
+      style={{ ...paddingStyles, ...style } as CSSProperties}
+    />
+  );
+});

@@ -1,78 +1,117 @@
 import {
-  InlineCluster,
-  InlineClusterProps,
-} from "@bedrock-layout/inline-cluster";
-import PropTypes from "prop-types";
-import styled, { css } from "styled-components";
+  CSSLength,
+  Gutter,
+  SizesOptions,
+  getSafeGutter,
+  getSizeValue,
+  useTheme,
+} from "@bedrock-layout/spacing-constants";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React, { CSSProperties } from "react";
 
-type Stretch = "all" | "start" | "end" | number;
-type SwitchAt = string | number;
+type MinItemWidth = number | CSSLength | SizesOptions;
+type SwitchAt = number | CSSLength | SizesOptions;
 
-export interface InlineProps extends InlineClusterProps {
+/**
+ * The `Stretch` type is used to specify which child should stretch to fill the excess space.
+ */
+export type Stretch = "all" | "start" | "end" | 0 | 1 | 2 | 3 | 4;
+
+/**
+ * Props for the Inline component.
+ */
+export type InlineProps = {
+  /**
+   * The `stretch` prop can be used to specify a child component that will stretch to fill the excess space.
+   */
   stretch?: Stretch;
+  /**
+   * The `switchAt` prop can be used to specify a breakpoint at which the items will switch to a column layout.
+   */
   switchAt?: SwitchAt;
-}
-
-const responsive = css<InlineProps>`
-  --switchAt: ${({ switchAt }) =>
-    typeof switchAt === "string" ? switchAt : `${switchAt}px`};
-
-  flex-wrap: wrap;
-  & > * {
-    min-inline-size: fit-content;
-    flex-basis: calc((var(--switchAt) - (100% - var(--gutter))) * 999);
-  }
-`;
-
-function shouldUseSwitch(switchAt?: SwitchAt) {
-  if (switchAt && switchAt > -1) {
-    return true;
-  }
-
-  if (typeof switchAt === "string" && typeof CSS !== undefined) {
-    return CSS.supports(`height: ${switchAt}`);
-  }
-
-  return false;
-}
-
-export const Inline = styled(InlineCluster).attrs<InlineProps>(
-  ({ justify, align, stretch }) => {
-    const justifyValue = justify ? `justify:${justify}` : "justify:start";
-    const alignValue = align ? `align:${align}` : "align:start";
-    const stretchValue = stretch ? `stretch:${stretch}` : undefined;
-    return {
-      "data-bedrock-inline": [justifyValue, alignValue, stretchValue]
-        .filter((x) => x)
-        .join(" "),
-      "data-bedrock-inline-cluster": undefined,
-    };
-  }
-)<InlineProps>`
-  flex-wrap: nowrap;
-  ${({ stretch }) =>
-    stretch === "all"
-      ? `> *  { flex: 1 }`
-      : stretch === "start"
-      ? `> :first-child { flex: 1 }`
-      : stretch === "end"
-      ? `> :last-child { flex: 1 }`
-      : typeof stretch === "number"
-      ? `> :nth-child(${stretch + 1}) { flex: 1 }`
-      : null}
-  ${(props) => shouldUseSwitch(props.switchAt) && responsive}
-`;
-
-Inline.displayName = "Inline";
-
-Inline.propTypes = {
-  ...InlineCluster.propTypes,
-  stretch: PropTypes.oneOfType([
-    PropTypes.oneOf<Stretch>(["all", "start", "end"]),
-    PropTypes.number,
-  ]),
-  switchAt: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number,
-  ]) as unknown as React.Validator<SwitchAt>,
+  /**
+   * The `minItemWidth` prop can be used to specify a minimum width for all the children.
+   */
+  minItemWidth?: MinItemWidth;
+  /**
+   * The `justify` prop can be used to specify the inline alignment of the children.
+   */
+  justify?: "start" | "end" | "center" | "space-between" | "space-around";
+  /**
+   * The `align` prop can be used to specify the block alignment of the children.
+   */
+  align?: "start" | "end" | "center" | "stretch";
+  /**
+   * Sets space between each element.
+   * @deprecated Use `gap` instead.
+   */
+  gutter?: Gutter;
+  /**
+   * Sets space between each element.
+   */
+  gap?: Gutter;
 };
+
+function createAttributeString(
+  prefix: string,
+  value: string | number | undefined,
+) {
+  if (value === undefined) return undefined;
+
+  return `${prefix}:${value}`;
+}
+
+/**
+ * The `Inline` component is designed to create consistent spacing between elements of variable width
+ * in the inline direction. Unlike the `InlineCluster` component, the items in the `Inline` component
+ * will not wrap.
+ *
+ * The `Inline` component also allows you to specify one of the children to stretch to fill the
+ * excess space. This is done using the `stretch` prop. The `stretch` prop can be set to `all` for all
+ * children to stretch, or a number to stretch a specific child. The `stretch` prop can also be set to
+ * `start` or `end` to stretch the first or last child respectively.
+ */
+export const Inline = forwardRefWithAs<"div", InlineProps>(function Inline(
+  {
+    as: Component = "div",
+    justify,
+    align,
+    gap,
+    gutter,
+    stretch,
+    style = {},
+    switchAt,
+    minItemWidth,
+    ...props
+  },
+  ref,
+) {
+  const theme = useTheme();
+
+  const justifyValue = createAttributeString("justify", justify);
+  const alignValue = createAttributeString("align", align);
+  const stretchValue = createAttributeString("stretch", stretch);
+
+  const maybeMinItemWidth = getSizeValue(theme, minItemWidth) ?? minItemWidth;
+  const switchAtValue = getSizeValue(theme, switchAt);
+
+  const attributes = [justifyValue, alignValue, stretchValue]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <Component
+      ref={ref}
+      data-bedrock-inline={attributes}
+      style={
+        {
+          "--gutter": getSafeGutter(theme, gap ?? gutter),
+          "--switchAt": switchAtValue,
+          "--minItemWidth": maybeMinItemWidth,
+          ...style,
+        } as CSSProperties
+      }
+      {...props}
+    />
+  );
+});

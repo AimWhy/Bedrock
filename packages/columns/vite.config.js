@@ -8,7 +8,7 @@ module.exports = defineConfig({
     outDir: "./lib",
     lib: {
       entry: path.resolve(__dirname, "src/index.tsx"),
-      name: "cover",
+      name: "columns",
       formats: ["cjs", "umd", "es"],
       fileName: (format) => {
         return `index.${format === "es" ? "m" : format}.js`;
@@ -17,12 +17,8 @@ module.exports = defineConfig({
     rollupOptions: {
       external: [
         "react",
-        "styled-components",
         "@bedrock-layout/spacing-constants",
-        "@bedrock-layout/stack",
         "@bedrock-layout/type-utils",
-        "@bedrock-layout/use-container-query",
-        "@bedrock-layout/use-forwarded-ref",
       ],
     },
   },

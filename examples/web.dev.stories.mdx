@@ -1,4 +1,4 @@
-import { Meta, Story, Preview, Canvas } from '@storybook/addon-docs';
+import { Meta, Story, Canvas } from '@storybook/addon-docs';
 import { Stack } from '../packages/stack/src/';
 import { Split } from '../packages/split/src/';
 import { Grid } from '../packages/grid/src/';
@@ -10,9 +10,9 @@ import { Cover } from '../packages/cover/src/';
 import { Center } from '../packages/center/src/';
 import { ColumnDrop } from '../packages/column-drop/src/';
 import jacketPic from '../.storybook/assets/jacket-pic.jpg'
-import { Box } from './Box'
+import { Component } from './Component'
 
-<Meta title="Examples/web.dev" />
+<Meta title="Examples/web.dev" parameters={{ viewMode: "docs" }} />
 
 # Layout patterns
 
@@ -20,19 +20,69 @@ In this page we are recreated some of the patterns from the [web.dev](https://we
 
 Minimal styling has been applied to make the examples more readable.
 
+## 12-span grid
+
+<p id="12-span-grid">
+  A grid broken up into 12 segments where you can place areas onto the tracks
+  evenly.{" "}
+</p>
+
+Uses the [Columns](/docs/spacer-components-columns--docs) and [Column](/docs/spacer-components-columns--docs) components.
+
+<Canvas>
+  <Story name="12-span grid">
+    <Columns gutter="size3" columns={12}>
+      <Column span={12}>
+        <Component>Span 12</Component>
+      </Column>
+      <Column span={6} offsetEnd={6}>
+        <Component>Span 6 (offsetEnd 6)</Component>
+      </Column>
+      <Column offsetStart={3} offsetEnd={5} span={4}>
+        <Component>Span 4 (offsetStart 3, offsetEnd 5)</Component>
+      </Column>
+      <Column offsetStart={2} span={2}>
+        <Component>Span 2 (offsetStart 2)</Component>
+      </Column>
+    </Columns>
+  </Story>
+</Canvas>
+
+```jsx
+<Columns gutter="size3" columns={12}>
+  <Column span={12}>
+    <Component>Span 12</Component>
+  </Column>
+  <Column span={6} offsetEnd={6}>
+    <Component>Span 6 (offsetEnd 6)</Component>
+  </Column>
+  <Column offsetStart={3} offsetEnd={5} span={4}>
+    <Component>Span 4 (offsetStart 3, offsetEnd 5)</Component>
+  </Column>
+  <Column offsetStart={2} span={2}>
+    <Component>Span 2 (offsetStart 2)</Component>
+  </Column>
+</Columns>
+```
+
 ## Aspect ratio image card
 
-Maintains the aspect ratio of an image in a card, while letting you resize the card. Uses the `<Frame>`, the `<Stack>`, and the `<PadBox>` components.
+<p id="ratio-image-card">
+  Maintains the aspect ratio of an image in a card, while letting you resize the
+  card.
+</p>
 
-(The `<Center` component is used to center and clamp the width of the card in the example.)
+Uses the [Frame](/docs/wrapper-components-frame--docs), the [Stack](/docs/spacer-components-stack--docs), and the [PadBox](/docs/wrapper-components-padbox--docs) components.
 
-<Canvas withToolbar withSource="open">
+(The [Center](/docs/wrapper-components-center--docs) component is used to center and clamp the width of the card in the example.)
+
+<Canvas>
   <Story name="Aspect ratio image card">
     <Center maxWidth="25rem">
       <PadBox
         as={Stack}
-        gutter="lg"
-        padding="xl"
+        gutter="size3"
+        padding="size7"
         style={{ border: "1px solid black" }}
       >
         <h1>Video Title</h1>
@@ -45,88 +95,107 @@ Maintains the aspect ratio of an image in a card, while letting you resize the c
   </Story>
 </Canvas>
 
-## Clamping card
-
-Sets an absolute min and max size, and an actual size for the card.
-
-You can learn more about this pattern in the [clamping card](https://web.dev/layout/clamping-card) page of web.dev, but to summarize: This pattern uses the `clamp` function in CSS to clamp the width of the card between a min and max width.
-
-At this time, Bedrock Layout Primitives does not have a layout component that would provide a benefit beyond what you can already do in CSS.
-
-<Canvas withToolbar withSource="open">
-  <Story name="Clamping card">
-    <Center centerChildren>
-      <PadBox
-        as={Stack}
-        gutter="lg"
-        padding="xl"
-        style={{ border: "1px solid black", width: "clamp(23ch, 60%, 46ch)" }}
-      >
-        <h1>Video Title</h1>
-        <Frame ratio={[16, 9]}>
-          <img src={jacketPic} alt="Computer" />
-        </Frame>
-        <p>Descriptive Text goes here</p>
-      </PadBox>
-    </Center>
-  </Story>
-</Canvas>
-
-[I am open to suggestions.](/?path=/docs/overview-contributing--page)
+```jsx
+<Center maxWidth="25rem">
+  <PadBox
+    as={Stack}
+    gutter="size3"
+    padding="size7"
+    style={{ border: "1px solid black" }}
+  >
+    <h1>Video Title</h1>
+    <Frame ratio={[16, 9]}>
+      <img src={jacketPic} alt="Computer" />
+    </Frame>
+    <p>Descriptive Text goes here</p>
+  </PadBox>
+</Center>
+```
 
 ## Deconstructed pancake
 
-Create a layout that stretches to fit the space, and snaps to the next line at a minimum size. Uses the `<ColumnDrop>` component.
+<p id="deconstructed-pancake">
+  Create a layout that stretches to fit the space, and snaps to the next line at
+  a minimum size.
+</p>
 
-(The `<Center` component is used to center and clamp the width of the card in the example.)
+Uses the [ColumnDrop](/docs/spacer-components-columndrop--docs) component.
 
-<Canvas withToolbar withSource="open">
+(The [Center](/docs/wrapper-components-center--docs) component is used to center and clamp the width of the card in the example.)
+
+<Canvas>
   <Story name="Deconstructed pancake">
     <Center maxWidth="25rem">
-      <ColumnDrop gutter="sm" basis="150px">
-        <Box>1</Box>
-        <Box>2</Box>
-        <Box>3</Box>
+      <ColumnDrop gutter="size2" minItemWidth="150px">
+        <Component>1</Component>
+        <Component>2</Component>
+        <Component>3</Component>
       </ColumnDrop>
     </Center>
   </Story>
 </Canvas>
 
+```jsx
+<Center maxWidth="25rem">
+  <ColumnDrop gutter="size2" minItemWidth="150px">
+    <Component>1</Component>
+    <Component>2</Component>
+    <Component>3</Component>
+  </ColumnDrop>
+</Center>
+```
+
 ## Holy grail layout
 
-Classic layout with a header, footer, and two sidebars flanking a main content area. Uses the `<Cover>` and `<Inline>` components.
+Classic layout with a header, footer, and two sidebars flanking a main content area. Uses the [Cover](/docs/wrapper-components-cover--docs) and [Inline](/docs/spacer-components-inline--docs) components.
 
-<Canvas withToolbar withSource="open">
+<Canvas withSource="open">
   <Story name="Holy grail layout">
     <Cover
-      gutter="sm"
+      gutter="size2"
       stretchContent
       minHeight="50vh"
-      top={<Box as="header">Header</Box>}
-      bottom={<Box as="footer">Footer</Box>}
+      top={<Component as="header">Header</Component>}
+      bottom={<Component as="footer">Footer</Component>}
     >
-      <Inline align="stretch" gutter="sm" stretch={1}>
-        <Box>Left Sidebar</Box>
-        <Box as="main">Main Content</Box>
-        <Box>Right Sidebar</Box>
+      <Inline align="stretch" gutter="size2" stretch={1}>
+        <Component>Left Sidebar</Component>
+        <Component as="main">Main Content</Component>
+        <Component>Right Sidebar</Component>
       </Inline>
     </Cover>
   </Story>
 </Canvas>
 
+```jsx
+<Cover
+  gutter="size2"
+  stretchContent
+  minHeight="50vh"
+  top={<Component as="header">Header</Component>}
+  bottom={<Component as="footer">Footer</Component>}
+>
+  <Inline align="stretch" gutter="size2" stretch={1}>
+    <Component>Left Sidebar</Component>
+    <Component as="main">Main Content</Component>
+    <Component>Right Sidebar</Component>
+  </Inline>
+</Cover>
+```
+
 ## Line up
 
-A layout where the sidebar is given a minimum and maximum safe area size, and the rest of the content fills the available space. Uses the `<Cover>` component.
+A layout where the sidebar is given a minimum and maximum safe area size, and the rest of the content fills the available space. Uses the [Cover](/docs/wrapper-components-cover--docs) component.
 
-(The `<Columns` component is used to create the 3 column layout.)
+(The [Columns](/docs/spacer-components-columns--docs) component is used to create the 3 column layout.)
 
-<Canvas withToolbar withSource="open">
+<Canvas withSource="open">
   <Story name="Line up">
-    <Columns columns={3} gutter="xxl">
+    <Columns columns={3} gutter="size9" switchAt="sizeContent2">
       <Cover
-        as={Box}
+        as={Component}
         minHeight="100%"
-        gutter="md"
+        gutter="size3"
         top={<h3>Title - Card 1</h3>}
         bottom={
           <Frame ratio={[16, 9]}>
@@ -139,9 +208,9 @@ A layout where the sidebar is given a minimum and maximum safe area size, and th
         </p>
       </Cover>
       <Cover
-        as={Box}
+        as={Component}
         minHeight="100%"
-        gutter="md"
+        gutter="size3"
         top={<h3>Title - Card 2</h3>}
         bottom={
           <Frame ratio={[16, 9]}>
@@ -155,9 +224,9 @@ A layout where the sidebar is given a minimum and maximum safe area size, and th
         </p>
       </Cover>
       <Cover
-        as={Box}
+        as={Component}
         minHeight="100%"
-        gutter="md"
+        gutter="size3"
         top={<h3>Title - Card 3</h3>}
         bottom={
           <Frame ratio={[16, 9]}>
@@ -171,96 +240,163 @@ A layout where the sidebar is given a minimum and maximum safe area size, and th
   </Story>
 </Canvas>
 
+```jsx
+<Columns columns={3} gutter="size9" switchAt="sizeContent2">
+  <Cover
+    as={Component}
+    minHeight="100%"
+    gutter="size3"
+    top={<h3>Title - Card 1</h3>}
+    bottom={
+      <Frame ratio={[16, 9]}>
+        <img src={jacketPic} alt="Computer" />
+      </Frame>
+    }
+  >
+    <p contenteditable>
+      Medium length description with a few more words here.
+    </p>
+  </Cover>
+  <Cover
+    as={Component}
+    minHeight="100%"
+    gutter="size3"
+    top={<h3>Title - Card 2</h3>}
+    bottom={
+      <Frame ratio={[16, 9]}>
+        <img src={jacketPic} alt="Computer" />
+      </Frame>
+    }
+  >
+    <p contenteditable>
+      Long Description. Lorem ipsum dolor sit, amet consectetur adipisicing
+      elit. Lorem ipsum dolor sit, amet consectetur adipisicing elit.
+    </p>
+  </Cover>
+  <Cover
+    as={Component}
+    minHeight="100%"
+    gutter="size3"
+    top={<h3>Title - Card 3</h3>}
+    bottom={
+      <Frame ratio={[16, 9]}>
+        <img src={jacketPic} alt="Computer" />
+      </Frame>
+    }
+  >
+    <p contenteditable>Short Description.</p>
+  </Cover>
+</Columns>
+```
+
 ## Pancake stack
 
-Commonly referred to as a sticky footer, this layout is often used for both websites and apps. Uses the `<Cover>` component.
+Commonly referred to as a sticky footer, this layout is often used for both websites and apps. Uses the [Cover](/docs/wrapper-components-cover--docs) component.
 
-<Canvas withToolbar withSource="open">
+<Canvas withSource="open">
   <Story name="Pancake stack">
     <Cover
       minHeight="25vh"
       stretchContent
-      gutter="md"
-      top={<Box as="header">Header</Box>}
-      bottom={<Box as="footer">Footer Content</Box>}
+      gutter="size3"
+      top={<Component as="header">Header</Component>}
+      bottom={<Component as="footer">Footer Content</Component>}
     >
-      <Box as="main" style={{ minHeight: "25vh" }}>
-        Main
-      </Box>
+      <Component as="main" style={{ minHeight: "25vh" }}>
+        <span>Main</span>
+      </Component>
     </Cover>
   </Story>
 </Canvas>
 
+```jsx
+<Cover
+  minHeight="25vh"
+  stretchContent
+  gutter="size3"
+  top={<Component as="header">Header</Component>}
+  bottom={<Component as="footer">Footer Content</Component>}
+>
+  <Component as="main" style={{ minHeight: "25vh" }}>
+    <span>Main</span>
+  </Component>
+</Cover>
+```
+
 ## RAM (Repeat, Auto, Minmax)
 
-A responsive layout with automatically-placed and flexible children. Uses the `<Grid>` component.
+A responsive layout with automatically-placed and flexible children. Uses the [Grid](/docs/spacer-components-grid--docs) component.
 
-(The `<Center` component is used to center and clamp the width of the card in the example.)
+(The [Center](/docs/wrapper-components-center--docs) component is used to center and clamp the width of the card in the example.)
 
-<Canvas withToolbar withSource="open">
+<Canvas withSource="open">
   <Story name="RAM (Repeat, Auto, Minmax)">
     <Center maxWidth="25rem">
-      <Grid gutter="lg" minItemWidth="150px">
-        <Box>1</Box>
-        <Box>2</Box>
-        <Box>3</Box>
-        <Box>4</Box>
+      <Grid gutter="size3" minItemWidth="150px">
+        <Component>1</Component>
+        <Component>2</Component>
+        <Component>3</Component>
+        <Component>4</Component>
       </Grid>
     </Center>
   </Story>
 </Canvas>
 
+```jsx
+<Grid gutter="size3" minItemWidth="150px">
+  <Component>1</Component>
+  <Component>2</Component>
+  <Component>3</Component>
+  <Component>4</Component>
+</Grid>
+```
+
 ## Sidbar says
 
-A layout where the sidebar is given a minimum and maximum safe area size, and the rest of the content fills the available space. Uses the `<Inline>` component.
+A layout where the sidebar is given a minimum and maximum safe area size, and the rest of the content fills the available space. Uses the [Split](/docs/spacer-components-split--docs) component.
 
-<Canvas withToolbar withSource="open">
+<Canvas withSource="open">
   <Story name="Sidbar says">
-    <Inline gutter="md" stretch={1} align="stretch">
-      <Box contentEditable style={{ width: "max(100px, 25%)" }}>
-        Min: 100px / Max: 25%
-      </Box>
-      <Box contentEditable>
-        This element takes the second position (stretch:1), meaning it takes up
-        the rest of the remaining space.
-      </Box>
-    </Inline>
+    <Split gutter="size3" fraction="1/4" minItemWidth="100px">
+      <Component>Min: 100px / Max: 25%</Component>
+      <Component>
+        {
+          "This element takes the second position, meaning it takes up the rest of the remaining space."
+        }
+      </Component>
+    </Split>
   </Story>
 </Canvas>
 
+```jsx
+<Split gutter="size3" fraction="1/4" minItemWidth="100px">
+  <Component>Min: 100px / Max: 25%</Component>
+  <Component>
+    {
+      "This element takes the second position, meaning it takes up the rest of the remaining space."
+    }
+  </Component>
+</Split>
+```
+
 ## Super centered
 
-Centering a child div vertically and horizontally. Uses the `<Center>` and `<Cover>` component.
+Centering a child div vertically and horizontally. Uses the [Center](/docs/wrapper-components-center--docs) and [Cover](/docs/wrapper-components-cover--docs) component.
 
-<Canvas withToolbar withSource="open">
+<Canvas withSource="open">
   <Story name="Super centered">
     <Cover minHeight="25vh">
       <Center centerChildren>
-        <Box>:)</Box>
+        <Component>:)</Component>
       </Center>
     </Cover>
   </Story>
 </Canvas>
 
-## 12-span grid
-
-A grid broken up into 12 segments where you can place areas onto the tracks evenly. Uses the `<Columns>` and `<Column>` components.
-
-<Canvas withToolbar withSource="open">
-  <Story name="12-span grid">
-    <Columns gutter="lg" columns={12}>
-      <Column span={12}>
-        <Box>Span 12</Box>
-      </Column>
-      <Column span={6} offsetEnd={6}>
-        <Box>Span 6 (offsetEnd 6)</Box>
-      </Column>
-      <Column offsetStart={3} offsetEnd={5} span={4}>
-        <Box>Span 4 (offsetStart 3, offsetEnd 5)</Box>
-      </Column>
-      <Column offsetStart={2} span={2}>
-        <Box>Span 2 (offsetStart 2)</Box>
-      </Column>
-    </Columns>
-  </Story>
-</Canvas>
+```jsx
+<Cover minHeight="25vh">
+  <Center centerChildren>
+    <Component>:)</Component>
+  </Center>
+</Cover>
+```

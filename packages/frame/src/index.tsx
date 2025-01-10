@@ -1,84 +1,78 @@
-import PropTypes from "prop-types";
-import styled, { css } from "styled-components";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React, { CSSProperties } from "react";
 
-export interface FrameProps {
-  ratio?: [number, number];
+type Maybe<T> = NonNullable<T> | undefined;
+
+type RatioString =
+  | `${number}/${number}`
+  | `${number} / ${number}`
+  | `${number}:${number}`
+  | `${number} : ${number}`;
+
+/**
+ * The `Ratio` type is used to specify the aspect ratio of the content.
+ */
+export type Ratio = readonly [number, number] | RatioString;
+
+/**
+ * Props for the `Frame` component.
+ */
+export type FrameProps = {
+  /**
+   * The `ratio` prop is used to specify the aspect ratio of the content.
+   */
+  ratio?: Ratio;
+  /**
+   * The `position` prop is used to specify the position of the content within the frame.
+   */
   position?: string;
+};
+
+type ValidRatioString = `${number}/${number}`;
+
+function getRatioString(ratio: Ratio): ValidRatioString {
+  const ratioArray = typeof ratio === "string" ? ratio.split(/\/|:/) : ratio;
+  return ratioArray.map((x) => String(x).trim()).join("/") as ValidRatioString;
 }
 
-export const Frame = styled.div.attrs<FrameProps>(() => {
-  return {
-    "data-bedrock-frame": "",
-  };
-})<FrameProps>`
-  --n: ${(props) =>
-    props.ratio && props.ratio[0] && Number.isInteger(props.ratio[0])
-      ? props.ratio[0]
-      : 1};
+function getSafeRatio(ratio: unknown): Maybe<ValidRatioString> {
+  const isCorrectArray =
+    Array.isArray(ratio) && ratio.length === 2 && ratio.every(Number.isFinite);
 
-  --d: ${(props) =>
-    props.ratio && props.ratio[1] && Number.isInteger(props.ratio[1])
-      ? props.ratio[1]
-      : 1};
-
-  box-sizing: border-box;
-  display: block;
-  inline-size: 100%;
-  position: relative;
-  overflow: hidden;
-
-  ${(props) =>
-    props.ratio === undefined
-      ? ""
-      : css`
-          aspect-ratio: var(--n) / var(--d);
-        `}
-
-  > * {
-    position: absolute;
-
-    inset-block-start: 0;
-    inset-block-end: 0;
-    inset-inline-start: 0;
-    inset-inline-end: 0;
-
-    inset-block: 0;
-    inset-inline: 0;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  if (isCorrectArray) {
+    return getRatioString(ratio as unknown as Ratio);
   }
 
-  > :is(img, video) {
-    inline-size: 100%;
-    block-size: 100%;
-    size: 100%;
+  const ratioStringRegex = /^\d{1,1000} {0,1}(\/|:) {0,1}\d{1,1000}$/;
 
-    object-fit: cover;
-    object-position: ${(props) =>
-      typeof props.position === "string" ? props.position : "50%"};
+  if (typeof ratio === "string" && ratioStringRegex.test(ratio)) {
+    return getRatioString(ratio as Ratio);
   }
-`;
 
-Frame.displayName = "Frame";
-
-type TwoNumbers = (props: FrameProps, propName: string) => Error | undefined;
-
-const twoNumbers: TwoNumbers = ({ ratio }, propName) => {
-  if (ratio === undefined) return undefined;
-  if (
-    !Array.isArray(ratio) ||
-    ratio.length !== 2 ||
-    !ratio.every(Number.isInteger)
-  ) {
-    console.error(`${propName} needs to be an array of two numbers`);
-  }
   return undefined;
-};
+}
 
-Frame.propTypes = {
-  //It's valid propType but can't get the type of Validator<[number, number]> to work
-  ratio: twoNumbers as unknown as React.Validator<[number, number]>,
-  position: PropTypes.string,
-};
+/**
+ * The `Frame` component is useful for cropping content, typically media, to a desired aspect ratio.
+ */
+export const Frame = forwardRefWithAs<"div", FrameProps>(function Frame(
+  { as: Component = "div", ratio, style = {}, position, ...props },
+  ref,
+) {
+  const maybeRatio = getSafeRatio(ratio);
+
+  return (
+    <Component
+      data-bedrock-frame
+      ref={ref}
+      style={
+        {
+          "--ratio": maybeRatio,
+          "--position": position,
+          ...style,
+        } as CSSProperties
+      }
+      {...props}
+    />
+  );
+});

@@ -1,20 +1,26 @@
-import useStatefulRef from "@bedrock-layout/use-stateful-ref";
+import { useStatefulRef } from "@bedrock-layout/use-stateful-ref";
+import { useRef } from "react";
 import React from "react";
 
-export default function useForwardedRef<T>(
-  forwardedRef: React.Ref<T>
+export interface Config {
+  isStateful: boolean;
+}
+
+/**
+ * @deprecated This hook is deprecated and will be removed in the next major version.
+ */
+export function useForwardedRef<T>(
+  forwardedRef?: React.Ref<T>,
+  config: Config = { isStateful: true },
 ): React.MutableRefObject<T> {
-  const innerRef = useStatefulRef<T>(null);
-  React.useEffect(() => {
-    if (!forwardedRef) return;
+  const statefulRef = useStatefulRef<T>();
+  const ref = useRef<T>();
 
-    if (typeof forwardedRef === "function") {
-      forwardedRef(innerRef.current);
-    } else {
-      (forwardedRef as React.MutableRefObject<T | null>).current =
-        innerRef.current;
-    }
-  });
+  const innerRef = config.isStateful ? statefulRef : ref;
 
-  return innerRef;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  React.useImperativeHandle(forwardedRef, () => innerRef.current);
+
+  return innerRef as React.MutableRefObject<T>;
 }

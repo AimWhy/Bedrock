@@ -1,20 +1,21 @@
-import useResizeObserver from "@bedrock-layout/use-resize-observer";
+import { useForwardedRef } from "@bedrock-layout/use-forwarded-ref";
+import { useResizeObserver } from "@bedrock-layout/use-resize-observer";
 import React from "react";
 
-type UseContainterQuery = (
-  node: Element | undefined,
-  width: number,
-  maxWidth?: number
-) => boolean;
+interface UseContainerQueryProps {
+  width: number;
+  maxWidth?: number;
+}
 
-const useContainterQuery: UseContainterQuery = (node, width = 1, maxWidth) => {
-  if (maxWidth !== undefined && maxWidth <= width) {
-    throw new Error(
-      `The second width value, ${maxWidth}, is not larger than ${width}. Please provide a value greater than first width value`
-    );
-  }
-
+/**
+ * @deprecated This hook is deprecated and will be removed in the next major version.
+ */
+export function useContainerQuery<T extends Element>(
+  { width = 1, maxWidth }: Readonly<UseContainerQueryProps>,
+  forwardedRef?: React.Ref<T>,
+): [boolean, React.MutableRefObject<T>] {
   const [matches, setMatch] = React.useState(false);
+  const containerRef = useForwardedRef(forwardedRef);
 
   useResizeObserver((entry: ResizeObserverEntry) => {
     //fix typings
@@ -31,9 +32,9 @@ const useContainterQuery: UseContainterQuery = (node, width = 1, maxWidth) => {
 
       setMatch(newMatch);
     }
-  }, node);
 
-  return matches;
-};
+    return entry;
+  }, containerRef.current);
 
-export default useContainterQuery;
+  return [matches, containerRef];
+}

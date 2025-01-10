@@ -1,15 +1,20 @@
 import React from "react";
 
-function useStatefulRef<T>(initialVal = null): React.MutableRefObject<T> {
-  // eslint-disable-next-line prefer-const
-  let [cur, setCur] = React.useState<T | null>(initialVal);
+/**
+ * @deprecated This hook is deprecated and will be removed in the next major version.
+ */
+export function useStatefulRef<T>(initialVal?: T): React.MutableRefObject<T> {
+  // eslint-disable-next-line prefer-const, functional/no-let
+  let [cur, setCur] = React.useState<T | undefined>(initialVal);
 
   const { current: ref } = React.useRef({
     current: cur,
   });
 
+  // eslint-disable-next-line functional/immutable-data
   Object.defineProperty(ref, "current", {
     get: () => cur as T,
+    // eslint-disable-next-line functional/no-return-void
     set: (value: T) => {
       if (!Object.is(cur, value)) {
         cur = value;
@@ -20,5 +25,3 @@ function useStatefulRef<T>(initialVal = null): React.MutableRefObject<T> {
 
   return ref as React.MutableRefObject<T>;
 }
-
-export default useStatefulRef;

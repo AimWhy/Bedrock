@@ -1,6 +1,6 @@
 {
   "name": "@bedrock-layout/reel",
-  "version": "1.2.10",
+  "version": "2.2.2",
   "description": "bedrock-layout reel",
   "sideEffects": false,
   "private": false,
@@ -11,8 +11,7 @@
     "reel",
     "scroll-snap",
     "layout",
-    "react",
-    "styled-components"
+    "react"
   ],
   "author": "Bedrock Layout",
   "homepage": "https://bedrock-layout.dev/",
@@ -25,6 +24,7 @@
   "types": "lib/index.d.ts",
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "import": "./lib/index.m.js",
       "require": "./lib/index.umd.js"
     }
@@ -37,11 +37,12 @@
     "lib"
   ],
   "dependencies": {
-    "@bedrock-layout/spacing-constants": "^2.7.0"
+    "@bedrock-layout/spacing-constants": "^3.3.9",
+    "@bedrock-layout/type-utils": "^0.1.13"
   },
   "peerDependencies": {
-    "react": "^16.8 || ^17",
-    "styled-components": ">=5"
+    "@bedrock-layout/css": "^2.1.0",
+    "react": "^16.8 || ^17 || ^18"
   },
   "repository": {
     "type": "git",
@@ -53,12 +54,12 @@
     "clean:build": "rimraf lib",
     "build": "vite build && tsc --emitDeclarationOnly",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|jsx|ts|tsx|json)\"",
-    "fix-format": "yarn prettier -- --write",
-    "check-format": "yarn prettier -- --list-different",
+    "fix-format": "yarn prettier --write",
+    "check-format": "yarn prettier --list-different",
     "check-types": "tsc --noEmit"
   },
   "bugs": {
     "url": "https://github.com/Bedrock-Layouts/Bedrock/issues"
   },
-  "gitHead": ""
+  "gitHead": "a3f85a5aebbd9681317b1c00c88765b2537f9b10"
 }

@@ -1,92 +1,93 @@
 import {
   CSSLength,
+  Gutter,
   SizesOptions,
-  SpacingOptions,
-  checkIsCSSLength,
+  getSafeGutter,
   getSizeValue,
-  getSpacingValue,
-  sizes,
+  useTheme,
 } from "@bedrock-layout/spacing-constants";
-import PropTypes from "prop-types";
-import styled from "styled-components";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React, { CSSProperties } from "react";
 
-type Basis = CSSLength | number | SizesOptions;
+/**
+ * The `minItemWidth` prop can be a CSSLength, a number, or a key of the theme's sizes options.
+ */
+type MinItemWidth = number | CSSLength | SizesOptions;
 
-export interface ColumnDropProps {
-  gutter: keyof SpacingOptions;
-  basis?: Basis;
+/**
+ * Props for the ColumnDrop component.
+ */
+export type ColumnDropProps = {
+  /**
+   * Sets space between each element.
+   * @deprecated Use `gap` instead.
+   */
+  gutter?: Gutter;
+  /**
+   * Sets space between each element.
+   */
+  gap?: Gutter;
+  /**
+   * Sets the minimum width of each child.
+   * The `minItemWidth` prop can be a CSSLength, a number, or a key of the theme's sizes options.
+   */
+  minItemWidth?: MinItemWidth;
+  /**
+   * Prevents columns from stretching to fill the space.
+   * @deprecated use `variant` set to `centered` instead.
+   */
   noStretchedColumns?: boolean;
-}
+  /**
+   * Setting it to `centered` will prevents columns from stretching to fill the space.
+   */
+  variant?: "default" | "centered";
+};
 
-function getSafeBasis<T extends Record<string, unknown>>(
-  theme: T,
-  basis?: Basis
-) {
-  if (typeof basis === "number") return `${basis}px`;
-  if (checkIsCSSLength(basis as string)) return basis;
-  return getSizeValue(theme, basis as string);
-}
-
-export const ColumnDrop = styled.div.attrs<ColumnDropProps>(
-  ({ gutter, theme, style = {}, basis, noStretchedColumns = false }) => {
-    const maybeGutter = getSpacingValue(theme, gutter);
+/**
+ * The `ColumnDrop` component is used to create a layout
+ * of columns that stretch to fit the space, and snaps
+ * to the next row at a minimum size. As columns drop
+ * down to a new row, they will be laid out independently
+ * of the column layout above. This component is useful for
+ * creating a responsive grid.
+ */
+export const ColumnDrop = forwardRefWithAs<"div", ColumnDropProps>(
+  function ColumnDrop(
+    {
+      as: Component = "div",
+      gutter,
+      gap,
+      style = {},
+      minItemWidth,
+      noStretchedColumns = false,
+      variant = "default",
+      ...props
+    },
+    ref,
+  ) {
+    const theme = useTheme();
+    const maybeGutter = getSafeGutter(theme, gap ?? gutter);
 
     const attributeValue =
-      noStretchedColumns === true ? "no-stretched-columns" : "";
+      variant === "centered" || noStretchedColumns === true
+        ? "no-stretched-columns"
+        : "";
 
-    const safeBasis = getSafeBasis(theme, basis);
+    const maybeMinItemWidth = getSizeValue(theme, minItemWidth);
 
-    return {
-      "data-bedrock-column-drop": attributeValue,
-      style: { ...style, "--gutter": maybeGutter, "--basis": safeBasis },
-    };
-  }
-)<ColumnDropProps>`
-  @property --basis {
-    syntax: "<length-percentage>";
-    inherits: true;
-    initial-value: ${sizes.xxsmall};
-  }
-
-  @property --gutter {
-    syntax: "<length-percentage>";
-    inherits: false;
-    initial-value: 0px;
-  }
-
-  box-sizing: border-box;
-  > * {
-    margin: 0;
-    flex-basis: var(--basis, ${sizes.xxsmall});
-    flex-grow: ${(props) => (props.noStretchedColumns ? "0" : "1")};
-    flex-shrink: 1;
-  }
-
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gutter, 0px);
-`;
-
-ColumnDrop.displayName = "ColumnDrop";
-
-function validateBasis({ basis }: ColumnDropProps, propName: string) {
-  if (basis === undefined) return;
-
-  const isValid =
-    typeof basis === "number" ||
-    checkIsCSSLength(basis as string) ||
-    Object.keys(sizes).includes(basis as string);
-
-  if (!isValid) {
-    console.error(
-      `${propName} needs to be an number, CSSLength or SizesOptions`
+    return (
+      <Component
+        ref={ref}
+        data-bedrock-column-drop={attributeValue}
+        style={
+          {
+            "--gutter": maybeGutter,
+            "--minItemWidth": maybeMinItemWidth,
+            ...style,
+          } as CSSProperties
+        }
+        {...props}
+      />
     );
-  }
-  return;
-}
-
-ColumnDrop.propTypes = {
-  gutter: PropTypes.string.isRequired as React.Validator<keyof SpacingOptions>,
-  basis: validateBasis as unknown as React.Validator<Basis>,
-  noStretchedColumns: PropTypes.bool,
-};
+  },
+);

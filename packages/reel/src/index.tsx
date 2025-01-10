@@ -1,54 +1,62 @@
 import {
-  SpacingOptions,
-  getSpacingValue,
+  Gutter,
+  getSafeGutter,
+  useTheme,
 } from "@bedrock-layout/spacing-constants";
-import PropTypes from "prop-types";
-import styled from "styled-components";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React, { CSSProperties } from "react";
 
-export interface ReelProps {
+/**
+ * Props for the Reel component.
+ */
+export type ReelProps = {
+  /**
+   * Sets the scroll snap type.
+   */
   snapType?: "none" | "proximity" | "mandatory";
-  gutter: keyof SpacingOptions;
+  /**
+   * Sets space between each element.
+   * @deprecated Use `gap` instead.
+   */
+  gutter?: Gutter;
+  /**
+   * Sets space between each element.
+   */
+  gap?: Gutter;
+};
+
+function createAttributeString(
+  prefix: string,
+  value: string | number | undefined,
+) {
+  if (value === undefined) return undefined;
+
+  return `${prefix}:${value}`;
 }
 
-export const Reel = styled.div.attrs<ReelProps>((props) => {
-  const maybeGutter = getSpacingValue(props.theme, props.gutter);
-  return {
-    "data-bedrock-reel": props.snapType ? `snapType:${props.snapType}` : "",
-    style: { ...props.style, "--gutter": maybeGutter ?? "0px" },
-  };
-})<ReelProps>`
-  box-sizing: border-box;
-  > * {
-    margin: 0;
-    scroll-snap-align: start;
-  }
+/**
+ * Scrolling is a popular and natural way to interact with
+ * web content. The `Reel` component is designed to organize
+ * content into scrollable horizontal list with convenient scroll
+ * snap points.
+ */
+export const Reel = forwardRefWithAs<"div", ReelProps>(function Reel(
+  { as: Component = "div", snapType, gutter, gap, style = {}, ...props },
+  ref,
+) {
+  const theme = useTheme();
+  const maybeGutter = getSafeGutter(theme, gap ?? gutter);
 
-  display: flex;
-  gap: var(--gutter);
+  const attributeString = [createAttributeString("snapType", snapType)]
+    .filter(Boolean)
+    .join(" ");
 
-  overflow-x: scroll;
-
-  scroll-snap-type: ${({ snapType = "none" }) => {
-    switch (snapType) {
-      case "none": {
-        return "none";
-      }
-      case "proximity": {
-        return "x proximity";
-      }
-      case "mandatory": {
-        return "x mandatory";
-      }
-      default: {
-        return "none";
-      }
-    }
-  }};
-`;
-
-Reel.displayName = "Reel";
-
-Reel.propTypes = {
-  snapType: PropTypes.oneOf(["none", "proximity", "mandatory"]),
-  gutter: PropTypes.string.isRequired as React.Validator<keyof SpacingOptions>,
-};
+  return (
+    <Component
+      ref={ref}
+      data-bedrock-reel={attributeString}
+      style={{ "--gutter": maybeGutter, ...style } as CSSProperties}
+      {...props}
+    />
+  );
+});

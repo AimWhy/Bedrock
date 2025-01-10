@@ -1,128 +1,102 @@
 import {
   CSSLength,
+  Gutter,
   SizesOptions,
-  SpacingOptions,
-  checkIsCSSLength,
+  getSafeGutter,
   getSizeValue,
-  getSpacingValue,
-  sizes,
+  useTheme,
 } from "@bedrock-layout/spacing-constants";
-import PropTypes from "prop-types";
-import React from "react";
-import styled, { css } from "styled-components";
+import { forwardRefWithAs } from "@bedrock-layout/type-utils";
+import React, { CSSProperties } from "react";
 
-type MinHeight = CSSLength | number | SizesOptions;
-export interface CoverProps {
+/**
+ * `minHeight` can be a CSSLength, a number, or a key of the theme's sizes object
+ */
+export type MinHeight = CSSLength | number | SizesOptions;
+
+/**
+ * Props for the Cover component.
+ */
+export type CoverProps = {
+  /**
+   * Slot to be placed at the top of the cover component, above the centered content.
+   */
   top?: React.ReactNode;
+  /**
+   * Slot to be placed at the bottom of the cover component, below the centered content.
+   */
   bottom?: React.ReactNode;
-  gutter: keyof SpacingOptions;
+  /**
+   * Sets space between each element.
+   * @deprecated Use `gap` instead.
+   */
+  gutter?: Gutter;
+  /**
+   * Sets space between each element.
+   */
+  gap?: Gutter;
+  /**
+   * Sets the minimum height of the cover component.
+   * `minHeight` can be a CSSLength, a number, or a key of the theme's sizes object
+   * @default "100vh"
+   */
   minHeight?: MinHeight;
+  /**
+   * Sets the content to stretch to the full height of the cover component minus the top and bottom slots.
+   * @deprecated Use `variant` set to `stretch-content` instead.
+   */
   stretchContent?: boolean;
-}
+  /**
+   * Sets the content to stretch to the full height of the cover component minus the top and bottom slots.
+   */
+  variant?: "default" | "stretch-content";
+};
 
-function getSafeMinHeight<T extends Record<string, unknown>>(
-  theme: T,
-  minHeight?: MinHeight
-) {
-  if (typeof minHeight === "number") return `${minHeight}px`;
-  if (checkIsCSSLength(minHeight as string)) return minHeight;
-  return getSizeValue(theme, minHeight as string);
-}
-
-export const Cover = styled.div.attrs<CoverProps>(
-  ({
+/**
+ * The `Cover` component is designed to vertically cover a predefined area, `100vh` by default, and vertically center its children.
+ * You can also conditionally render a top and/or bottom slot as well.
+ */
+export const Cover = forwardRefWithAs<"div", CoverProps>(function Cover(
+  {
+    as: Component = "div",
     children,
+    gap,
     gutter,
     top,
     bottom,
     minHeight,
-    theme,
-    style,
+    style = {},
     stretchContent,
-  }) => {
-    const maybeGutter = getSpacingValue(theme, gutter);
-    const safeMinHeight = getSafeMinHeight(theme, minHeight);
+    variant = "default",
+    ...props
+  },
+  ref,
+) {
+  const theme = useTheme();
+  const maybeGutter = getSafeGutter(theme, gap ?? gutter);
+  const maybeMinHeight = getSizeValue(theme, minHeight);
 
-    const attributeVal = stretchContent === true ? "stretch-content" : "";
+  const attributeVal =
+    variant === "stretch-content" || stretchContent === true
+      ? "stretch-content"
+      : "";
 
-    return {
-      "data-bedrock-cover": attributeVal,
-      style: {
-        ...style,
-        "--minHeight": safeMinHeight,
-        "--gutter": maybeGutter,
-      },
-      children: (
-        <React.Fragment>
-          {top && <div data-bedrock-cover-top="">{top}</div>}
-          <div data-bedrock-cover-centered="">{children}</div>
-          {bottom && <div data-bedrock-cover-bottom="">{bottom}</div>}
-        </React.Fragment>
-      ),
-    };
-  }
-)<CoverProps>`
-  @property --gutter {
-    syntax: "<length-percentage>";
-    inherits: false;
-    initial-value: 0;
-  }
-
-  @property --minHeight {
-    syntax: "<length-percentage>";
-    inherits: false;
-    initial-value: 100vh;
-  }
-
-  > * {
-    margin: 0;
-  }
-
-  display: flex;
-  flex-direction: column;
-  gap: var(--gutter, 0px);
-
-  min-block-size: var(--minHeight, 100vh);
-
-  > [data-bedrock-cover-centered] {
-    margin-block-start: auto;
-    margin-block-end: auto;
-
-    ${({ stretchContent }) =>
-      stretchContent === true &&
-      css`
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        > * {
-          flex: 1;
-        }
-      `};
-  }
-`;
-
-Cover.displayName = "Cover";
-
-function validateMinHeight({ minHeight }: CoverProps, propName: string) {
-  if (minHeight === undefined) return;
-
-  const isValid =
-    typeof minHeight === "number" ||
-    checkIsCSSLength(minHeight as string) ||
-    Object.keys(sizes).includes(minHeight as string);
-
-  if (!isValid) {
-    console.error(
-      `${propName} needs to be an number, CSSLength or SizesOptions`
-    );
-  }
-  return;
-}
-
-Cover.propTypes = {
-  gutter: PropTypes.string.isRequired as React.Validator<keyof SpacingOptions>,
-  minHeight: validateMinHeight as unknown as React.Validator<MinHeight>,
-  top: PropTypes.element,
-  bottom: PropTypes.element,
-  stretchContent: PropTypes.bool,
-};
+  return (
+    <Component
+      ref={ref}
+      data-bedrock-cover={attributeVal}
+      style={
+        {
+          "--gutter": maybeGutter,
+          "--minHeight": maybeMinHeight,
+          ...style,
+        } as CSSProperties
+      }
+      {...props}
+    >
+      {top && <div data-bedrock-cover-top="">{top}</div>}
+      <div data-bedrock-cover-centered="">{children}</div>
+      {bottom && <div data-bedrock-cover-bottom="">{bottom}</div>}
+    </Component>
+  );
+});

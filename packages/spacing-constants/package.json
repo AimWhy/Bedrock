@@ -1,6 +1,6 @@
 {
   "name": "@bedrock-layout/spacing-constants",
-  "version": "2.7.0",
+  "version": "3.3.9",
   "description": "bedrock-layout spacing constants",
   "sideEffects": false,
   "private": false,
@@ -22,6 +22,7 @@
   "types": "lib/index.d.ts",
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "import": "./lib/index.m.js",
       "require": "./lib/index.umd.js"
     }
@@ -34,8 +35,7 @@
     "lib"
   ],
   "peerDependencies": {
-    "react": "^16.8 || ^17",
-    "styled-components": ">=5"
+    "react": "^16.8 || ^17 || ^18"
   },
   "repository": {
     "type": "git",
@@ -47,12 +47,12 @@
     "clean:build": "rimraf lib",
     "build": "vite build && tsc --emitDeclarationOnly",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|jsx|ts|tsx|json)\"",
-    "fix-format": "yarn prettier -- --write",
-    "check-format": "yarn prettier -- --list-different",
+    "fix-format": "yarn prettier --write",
+    "check-format": "yarn prettier --list-different",
     "check-types": "tsc --noEmit"
   },
   "bugs": {
     "url": "https://github.com/Bedrock-Layouts/Bedrock/issues"
   },
-  "gitHead": "1ac6f1bbee09a2fae8ca4fd3b3a2b1086b3b64ec"
+  "gitHead": "a3f85a5aebbd9681317b1c00c88765b2537f9b10"
 }
